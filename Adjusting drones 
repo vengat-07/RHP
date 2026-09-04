@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int T;
+    cin >> T;
+
+    while (T--) {
+        int n, k;
+        cin >> n >> k;
+
+        vector<ll> a(n);
+        for (auto &x : a) cin >> x;
+
+        sort(a.begin(), a.end());
+
+        // Check whether m operations are enough.
+        auto check = [&](ll m) -> bool {
+            vector<ll> b(n);
+
+            // Process from right to left.
+            // For k = 1, find the smallest unused
+            // final value >= a[i].
+            set<ll> used;
+
+            for (int i = n - 1; i >= 0; --i) {
+                auto it = used.lower_bound(a[i]);
+
+                if (it == used.end()) {
+                    b[i] = a[i];
+                } else {
+                    b[i] = *it;
+                }
+
+                // The element can increase at most m times.
+                if (b[i] > a[i] + m)
+                    return false;
+
+                used.insert(b[i]);
+            }
+
+            // Simulate the state after m operations.
+            map<ll, int> cnt;
+
+            for (int i = 0; i < n; ++i) {
+                ll value = min(a[i] + m, b[i]);
+                cnt[value]++;
+            }
+
+            // Every value must occur at most k times.
+            for (auto [x, c] : cnt) {
+                if (c > k)
+                    return false;
+            }
+
+            return true;
+        };
+
+        /*
+         * The answer is monotonic:
+         * if m operations are enough,
+         * then m+1 operations are also enough.
+         */
+
+        ll lo = 0, hi = 1;
+
+        while (!check(hi))
+            hi *= 2;
+
+        while (lo < hi) {
+            ll mid = lo + (hi - lo) / 2;
+
+            if (check(mid))
+                hi = mid;
+            else
+                lo = mid + 1;
+        }
+
+        cout << lo << '\n';
+    }
+}
